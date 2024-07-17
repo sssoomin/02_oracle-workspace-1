@@ -191,3 +191,18 @@ FROM EMPLOYEE;
 
 
 
+-- 사원명, 아이디(대문자로)
+SELECT EMP_NAME, UPPER(REPLACE(EMAIL, '@br.com', ''))
+FROM EMPLOYEE;
+-- 사원명, 입사년도(두자리로)
+SELECT EMP_NAME, SUBSTR(HIRE_DATE, 1, 2) -- 날짜타입 => 문자타입 (형변환) 'XX/XX/XX'
+FROM EMPLOYEE;
+-- 사원명, 생년월일(XX년 XX월 XX일)
+SELECT EMP_NAME, SUBSTR(EMP_NO, 1, 2) || '년 ' || SUBSTR(EMP_NO, 3, 2) || '월 ' || SUBSTR(EMP_NO, 5, 2) || '일' "생년월일"
+FROM EMPLOYEE;
+-- 사원명, 급여(만원 단위로)
+SELECT EMP_NAME, SUBSTR(SALARY, 1, LENGTH(SALARY) - 4) "급여", '만원' "단위"
+FROM EMPLOYEE;
+
+
+
