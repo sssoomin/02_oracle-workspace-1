@@ -323,10 +323,197 @@ SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
      ....
 */
 
+-----------------------------------------------------------------------------
+
+/*
+    < 인라인 뷰 (INLINE-VIEW) >
+    1. FROM절에 작성된 서브쿼리
+    2. 서브쿼리 수행 결과를 마치 하나의 테이블(임시테이블) 처럼 사용 가능
+    3. 주로 TOP-N 분석시 많이 사용됨
+*/
+
+-- 사번, 이름, 보너스포함연봉(별칭부여), 부서코드 조회 
+SELECT EMP_ID, EMP_NAME, (SALARY + SALARY * NVL(BONUS, 0)) * 12 "연봉", DEPT_CODE
+  FROM EMPLOYEE;
+
+-- 단, 보너스 포함 연봉이 3000만원 이상인 사원들만 조회 
+SELECT EMP_ID, EMP_NAME, (SALARY + SALARY * NVL(BONUS, 0)) * 12 "연봉", DEPT_CODE
+  FROM EMPLOYEE
+ WHERE (SALARY + SALARY * NVL(BONUS, 0)) * 12 >= 30000000;
+
+-- 인라인뷰 적용 => 별칭을 가져다가 메인쿼리의 조건으로 활용 가능
+SELECT EMP_NAME, 연봉--, MANAGER_ID
+  FROM (SELECT EMP_ID, EMP_NAME, (SALARY + SALARY * NVL(BONUS, 0)) * 12 "연봉", DEPT_CODE
+          FROM EMPLOYEE)
+ WHERE 연봉 >= 30000000;
+ 
+--> TOP-N 분석
+-- 1) 전 사원 중 급여가 가장 높은 상위 5명(선동일, 송종기, 송은희, 대북혼, 박나라)만 조회 
+-- * ROWNUM : 오라클에서 제공해주는 컬럼, 조회된 순서대로 1부터 순번을 부여해주는 컬럼
+SELECT ROWNUM, EMP_NAME, SALARY
+  FROM EMPLOYEE
+ ORDER BY SALARY DESC;
+-- 실행 순서 : FROM절 => SELECT절 (순번부여) => ORDER BY절 
+
+SELECT ROWNUM, EMP_NAME, SALARY
+  FROM EMPLOYEE
+ WHERE ROWNUM <= 5
+ ORDER BY SALARY DESC;
+--> 정상적인 결과가 조회되지 않음 (정렬이 되기도 전에 5명이 추려져버림)
+
+--> ORDER BY절이 수행된 후에 순번이 부여되야됨 => ROWNUM이 5이하인 추려내야됨
+SELECT ROWNUM, E.*
+  FROM (SELECT EMP_NAME, SALARY, DEPT_CODE
+          FROM EMPLOYEE
+         ORDER BY SALARY DESC) E
+ WHERE ROWNUM <= 5;
+
+-- 2) 가장 최근에 입사한 사원 3명 조회 (사원명, 급여, 입사일)
+SELECT EMP_NAME, SALARY, HIRE_DATE
+  FROM (SELECT *
+          FROM EMPLOYEE
+         ORDER BY HIRE_DATE DESC)
+ WHERE ROWNUM <= 3;
+ 
+-- 3) 각 부서별 평균급여가 높은 3개의 부서 조회 (부서코드, 평균급여)
+SELECT DEPT_CODE, FLOOR(평균급여)
+  FROM (SELECT DEPT_CODE, AVG(SALARY) 평균급여
+          FROM EMPLOYEE
+         GROUP BY DEPT_CODE
+         ORDER BY 2 DESC)
+ WHERE ROWNUM <= 3;
+ 
+--> ROWNUM 특성상 1부터 시작되는 범위만 조회 가능함 
+SELECT DEPT_CODE, FLOOR(평균급여)
+  FROM (SELECT DEPT_CODE, AVG(SALARY) 평균급여
+          FROM EMPLOYEE
+         GROUP BY DEPT_CODE
+         ORDER BY 2 DESC)
+ WHERE ROWNUM BETWEEN 2 AND 4; --> 정상적으로 조회되지 않음
+ 
+/*
+    < WINDOW FUNCTION >
+    1) ROWNUM처럼 순번을 부여해주는 함수 : ROW_NUMBER() OVER(정렬기준)
+    2) 순위를 매겨주는 함수
+        ㄴ RANK() OVER(정렬기준)         : 동일한 순위 이후의 등수를 동일한 인원수만큼 건너띄고 순위계산 (ex) 공동1위 2명, 그다음순위 3위)
+        ㄴ DENSE_RANK() OVER(정렬기준)   : 동일한 순위 이후의 등수를 무조건 1씩 증가 순위 계산 (ex) 공동1위 2명, 그다음순위 2위)
+    
+    [유의사항]
+    SELECT절에만 작성 가능 (즉, WHERE절에 사용 불가)
+*/
+-- 급여가 가장 높은 상위 5명 조회
+SELECT EMP_NAME, SALARY, ROW_NUMBER() OVER(ORDER BY SALARY DESC) "순번"
+  FROM EMPLOYEE
+ WHERE ROW_NUMBER() OVER(ORDER BY SALARY DESC) <= 5; -- 오류
+
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY, ROW_NUMBER() OVER(ORDER BY SALARY DESC) "순번"
+          FROM EMPLOYEE)
+ WHERE 순번 BETWEEN 1 AND 5;
+
+-- 2위부터 7위 조회 (1부터의 범위가 아니여도 정상조회)
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY, ROW_NUMBER() OVER(ORDER BY SALARY DESC) "순번"
+          FROM EMPLOYEE)
+ WHERE 순번 BETWEEN 2 AND 7;
+
+-- 급여가 가장 높은 상위 5명 조회
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) "순위"
+          FROM EMPLOYEE)
+ WHERE 순위 <= 5;
+
+SELECT *
+  FROM (SELECT EMP_NAME, SALARY, DENSE_RANK() OVER(ORDER BY SALARY DESC) "순위"
+          FROM EMPLOYEE)
+ WHERE 순위 <= 5;
+ 
+---------------------------------------------------------------------------------
+
+/*
+    < 상관 서브쿼리 >
+    일반적인 서브쿼리 방식은 서브쿼리의 결과값을 가지고 메인쿼리 활용 (서브쿼리 => 메인쿼리)
+    단, 상관 서브쿼리는 반대로 메인쿼리의 값을 가져다가 서브쿼리에서 활용 
+    즉, 메인쿼리의 값이 변경되면 서브쿼리의 결과값도 변경됨
+*/
+-- 1) 본인 직급의 평균급여보다 더 많이 받는 사원 이름, 직급코드, 급여 조회 
+SELECT EMP_NAME, JOB_CODE, SALARY
+  FROM EMPLOYEE;
+
+SELECT EMP_NAME, E.JOB_CODE, SALARY
+  FROM EMPLOYEE E
+ WHERE SALARY > 해당사원직급(E.JOB_CODE)의평균급여;
+
+SELECT EMP_NAME, E.JOB_CODE, SALARY
+  FROM EMPLOYEE E
+ WHERE SALARY > (SELECT AVG(SALARY)
+                   FROM EMPLOYEE
+                  WHERE JOB_CODE = E.JOB_CODE); -- E.JOB_CODE 자리는 메인쿼리의 매행 스캔시마다 매번 달라짐 => 서브쿼리 결과값도 매번 다름
+
+-- 2) 보너스가 본인 부서의 평균보너스보다 더 많이 받는 사원 (사원명, 부서코드, 급여, 보너스 조회)
+SELECT EMP_NAME, DEPT_CODE, SALARY, BONUS
+  FROM EMPLOYEE E
+ WHERE BONUS > (SELECT AVG(BONUS)
+                  FROM EMPLOYEE
+                 WHERE DEPT_CODE = E.DEPT_CODE);
+
+-- * 상관서브쿼리면서 SELECT절에 작성된 서브쿼리 : 스칼라 서브쿼리 
+-- 3) 전 사원의 사번, 이름, 직급코드, 직급명 조회 
+-- > JOIN 활용
+SELECT EMP_ID, EMP_NAME, JOB_CODE, JOB_NAME
+  FROM EMPLOYEE
+  JOIN JOB USING(JOB_CODE);
+
+-- > 스칼라 서브쿼리 활용 
+SELECT E.EMP_ID, E.EMP_NAME, E.JOB_CODE, JOB테이블로부터 JOB_CODE값이 E.JOB_CODE와 일치하는 JOB_NAME
+  FROM EMPLOYEE E;
+
+SELECT E.EMP_ID, E.EMP_NAME, E.JOB_CODE
+     , (SELECT JOB_NAME
+          FROM JOB
+         WHERE JOB_CODE = E.JOB_CODE) "JOB_NAME"
+  FROM EMPLOYEE E;
+
+/*
+    * JOIN VS 서브쿼리 
+      존재하는 데이터 수량에 따라서 효율/비효율적 판단됨 
+      
+    * 스칼라 서브쿼리 특징 
+      입력값(메인쿼리값)과 출력값(서브쿼리값)을 내부 캐시라는 공간에 저장해둠
+      서브쿼리 수행 전에 캐시로부터 먼저 찾아보고 거기에 없으면 서브쿼리를 수행 있으면 출력값을 바로 반환 
+      => 수행 속도가 빨라짐
+*/
+
+-- 4) 전 사원의 사번, 사원명, 부서명
+SELECT EMP_ID, EMP_NAME
+     , (SELECT DEPT_TITLE
+          FROM DEPARTMENT
+         WHERE DEPT_ID = E.DEPT_CODE) "DEPT_TITLE"
+  FROM EMPLOYEE E;
+  
+-- 5) 전 사원의 사번, 사원명, 사수명(단, 사수가 없을 경우 "없음"으로)
+SELECT EMP_ID, EMP_NAME
+     , NVL((SELECT EMP_NAME
+              FROM EMPLOYEE
+             WHERE EMP_ID = E.MANAGER_ID), '없음') "MANAGER_NAME"
+  FROM EMPLOYEE E;
+
+-- 6) 전 사원의 사번, 사원명, 급여, 본인부서부서원수, 본인부서평균급여 
+SELECT EMP_ID, EMP_NAME, SALARY
+     , (SELECT COUNT(*), AVG(SALARY)
+          FROM EMPLOYEE
+         WHERE DEPT_CODE = E.DEPT_CODE) --> 오류. 스칼라 서브쿼리는 무조건 1개값만 조회되도록
+  FROM EMPLOYEE E;
 
 
-
-
+SELECT EMP_ID, EMP_NAME, SALARY
+     , (SELECT COUNT(*)
+          FROM EMPLOYEE
+         WHERE DEPT_CODE = E.DEPT_CODE) "부서원수"
+     , ROUND((SELECT AVG(SALARY)
+               FROM EMPLOYEE
+              WHERE DEPT_CODE = E.DEPT_CODE)) "부서평균급여"
+  FROM EMPLOYEE E;
 
 
  
