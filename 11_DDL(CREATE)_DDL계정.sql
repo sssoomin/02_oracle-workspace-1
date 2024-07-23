@@ -502,7 +502,14 @@ CREATE TABLE EMPLOYEE_COPY3
          FROM EMPLOYEE;
 --> 서브쿼리 SELECT절에 산술식 또는 함수식 기술할 경우 반드시 별칭 지정
 
+SELECT EMP_NAME, 연봉
+  FROM EMPLOYEE_COPY3
+ WHERE 연봉 >= 40000000;
 
+/*
+    < 테이블 생성 후 제약조건 별도로 추가하기 >
+    
+*/
 
 
 
