@@ -92,6 +92,46 @@ ALTER TABLE DEPT_COPY
     MODIFY DEPT_TITLE NULL;
 
 
+---------------------------------------------------------------------------------
+
+-- 3. 컬럼명/제약조건명/테이블명 변경 (RENAME)
+
+-- 3_1) 컬럼명 변경 : RENAME COLUMN 기존컬럼명 TO 바꿀컬럼명
+--      DEPT_TITLE => DEPT_NAME
+ALTER TABLE DEPT_COPY RENAME COLUMN DEPT_TITLE TO DEPT_NAME;
+
+-- 3_2) 제약조건명 변경 : RENAME CONSTRAINT 기존제약조건명 TO 바꿀제약조건명
+--      SYS_C007139 => DCOPY_LID_NN 
+ALTER TABLE DEPT_COPY RENAME CONSTRAINT SYS_C007139 TO DCOPY_LID_NN;
+
+-- 3_3) 테이블명 변경 : RENAME [기존테이블명] TO 바꿀테이블명
+--      DEPT_COPY => DEPT_TEST
+ALTER TABLE DEPT_COPY RENAME TO DEPT_TEST;
+
+--------------------------------------------------------------------------------
+
+/*
+    < DROP >
+    데이터베이스 객체를 삭제시키는 구문 
+    
+    [표현법]
+    DROP 데이터베이스객체 객체명;
+    
+    > 테이블 삭제시
+      DROP TABLE 테이블명 [CASCADE CONSTRAINT];
+      
+      부모테이블일 경우 함부로 삭제 안됨! 
+      방법1. 자식테이블 먼저 삭제한 후 부모테이블 삭제 
+      방법2. 부모테이블을 바로 지우고자 할 경우 제약조건까지 같이 삭제
+             => CASCADE CONSTRAINT
+*/
+
+-- DEPT_TEST 테이블 삭제
+DROP TABLE DEPT_TEST;
+
+
+
+
 
 
 
