@@ -461,6 +461,76 @@ INSERT INTO MEMBER(MEM_NO, MEM_NAME) VALUES(4, '강개순');
 
 COMMIT;
 
+-- ============================================================================
+
+-- * BR계정에서 진행 
+
+/*
+    < SUBQUERY를 활용한 테이블 생성 >
+    1. 서브쿼리로 조회되는 결과를 테이블로 생성시킬 수 있음 
+    2. 주로 테이블 복사를 진행할 때 사용됨 
+    
+    [표현법]
+    CREATE TABLE 테이블명
+        AS 서브쿼리;
+*/
+
+-- EMPLOYEE 테이블을 복제한 새로운 테이블 생성 
+CREATE TABLE EMPLOYEE_COPY
+    AS SELECT *
+         FROM EMPLOYEE;
+--> 현재 조회되는 컬럼(컬럼명, 데이터타입), 데이터값 고스란히 구축됨
+--> 제약조건 같은 경우 NOT NULL 만 복사됨 
+
+SELECT * FROM EMPLOYEE_COPY;
+
+-- 데이터값 없이 구조만을 복사
+CREATE TABLE EMPLOYEE_COPY2(
+    EMP_ID 데이터타입 제약조건,
+    EMP_NAME 데이터타입 제약조건, ...
+    
+);
+
+
+CREATE TABLE EMPLOYEE_COPY2
+    AS SELECT EMP_ID, EMP_NAME, SALARY, BONUS
+         FROM EMPLOYEE
+        WHERE 1=0; -- 구조만을 복사하고자 할때 
+        
+CREATE TABLE EMPLOYEE_COPY3
+    AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY*12 "연봉"
+         FROM EMPLOYEE;
+--> 서브쿼리 SELECT절에 산술식 또는 함수식 기술할 경우 반드시 별칭 지정
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
