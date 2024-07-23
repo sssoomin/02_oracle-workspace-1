@@ -258,6 +258,20 @@ UPDATE EMP_SALARY
                    JOIN LOCATION ON (LOCATION_ID = LOCAL_CODE)
                   WHERE LOCAL_NAME LIKE 'ASIA%');
 
+-- * UPDATE 시 제약조건 유의할것
+-- EMPLOYEE 에 사번이 200인 사원의 이름을 NULL로 변경
+UPDATE EMPLOYEE
+   SET EMP_NAME = NULL
+ WHERE EMP_ID = 200; --> NOT NULL 제약조건 위배
+ 
+-- 노옹철 사원의 직급을 J9로 변경
+UPDATE EMPLOYEE
+   SET JOB_CODE = 'J9'
+ WHERE EMP_NAME = '노옹철'; --> 외래키 제약조건 위배
+ 
+---------------------------------------------------------------------------------
+
+
 
 
 
