@@ -278,11 +278,61 @@ UPDATE EMPLOYEE
        [표현법]
        DELETE 
          FROM 테이블명
-        [WHERE 조건];
+        [WHERE 조건];  --> 생략시 전체 행 다 삭제됨
 */
 
+-- EMPLOYEE 장채현 사원 삭제 
+DELETE 
+  FROM EMPLOYEE
+ WHERE EMP_NAME = '장채현';
 
+ROLLBACK;
 
+-- EMPLOYEE에 901, 500, 501 사원 삭제
+DELETE
+  FROM EMPLOYEE
+ WHERE EMP_ID IN ('901', '500', '501');
+
+COMMIT;
+
+-- DEPT_ID가 D1인 부서를 삭제
+DELETE 
+  FROM DEPARTMENT
+ WHERE DEPT_ID = 'D1'; -- D1값을 가져다 쓰고있는 자식데이터가 있기 때문에 삭제 불가능
+
+-- DEPARTMENT(부모) -|--------<- EMPLOYEE(자식)
+--       1                :           N
+
+-- 삭제시 외래키 제약조건으로 데이터 삭제 불가능시
+-- 제약조건(SYS_C007130)을 비활성화 시킬 수 있음 
+ALTER TABLE EMPLOYEE DISABLE CONSTRAINT SYS_C007130 CASCADE;
+
+DELETE 
+  FROM DEPARTMENT
+ WHERE DEPT_ID = 'D1'; 
+ 
+SELECT * FROM DEPARTMENT;
+
+ROLLBACK;
+
+INSERT INTO DEPARTMENT VALUES ('D1', '인사관리부', 'L1');
+
+-- 활성화
+ALTER TABLE EMPLOYEE ENABLE CONSTRAINT SYS_C007130;
+
+/*
+    4. TRUNCATE 
+       테이블의 전체 행을 삭제할 때 사용되는 구문 (DDL)
+       DELETE 보다 수행속도가 더 빠름
+       별도의 조건 제시 불가, ROLLBACK 불가능
+       
+       [표현법]
+       TRUNCATE TABLE 테이블명;
+*/
+SELECT * FROM EMP_SALARY;
+
+TRUNCATE TABLE EMP_SALARY;
+ROLLBACK;
 
 
 
