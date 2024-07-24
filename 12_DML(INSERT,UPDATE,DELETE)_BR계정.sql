@@ -21,7 +21,7 @@
     
     [유의사항]
     테이블에 존재하는 컬럼순번대로 모든 값을 작성해야됨
-    ㄴ 부족하게 값 제시시  => not enough values 오류
+    ㄴ 부족하게 값 제시시  => not enough value 오류
     ㄴ 값을 더 많이 제시시 => too many values 오류 
 */
 
