@@ -80,16 +80,44 @@ ALTER SEQUENCE SEQ_EMPNO
     
 SELECT SEQ_EMPNO.NEXTVAL FROM DUAL; -- 310+10 => 320
 
+/*
+    4. 시퀀스 삭제
+    
+    [표현법]
+    DROP SEQUENCE 시퀀스명;
+*/
+DROP SEQUENCE SEQ_EMPNO;
 
 
+---------------------------------------------------------------------------------
+
+-- 시퀀스 사용 예시 ) 신입사원이 추가될때마다 매번 새로운 사번 부여
+CREATE SEQUENCE SEQ_EID
+    START WITH 400
+    NOCACHE;
+
+INSERT INTO EMPLOYEE(EMP_ID, EMP_NAME, EMP_NO, JOB_CODE, HIRE_DATE)
+VALUES(SEQ_EID.NEXTVAL, '홍길동', '111111-1111111', 'J7', SYSDATE);
 
 
+SELECT * FROM EMPLOYEE;
 
+INSERT INTO EMPLOYEE(EMP_ID, EMP_NAME, EMP_NO, JOB_CODE, HIRE_DATE)
+VALUES(SEQ_EID.NEXTVAL, '김말똥', '222222-2222222', 'J7', SYSDATE);
 
+-- 직급데이터 추가시 직급코드로 활용할 시퀀스 
+CREATE SEQUENCE SEQ_JCODE
+    START WITH 8
+    MAXVALUE 9
+    NOCACHE;
+    
+INSERT INTO JOB VALUES('J' || SEQ_JCODE.NEXTVAL, '신입');
 
+SELECT * FROM JOB;
 
+INSERT INTO JOB VALUES('J' || SEQ_JCODE.NEXTVAL, '인턴');
 
-
+COMMIT;
 
 
 
