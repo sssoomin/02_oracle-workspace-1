@@ -54,11 +54,31 @@ SELECT SEQ_EMPNO.CURRVAL FROM DUAL; -- 300
 SELECT SEQ_EMPNO.NEXTVAL FROM DUAL; -- 305
 SELECT SEQ_EMPNO.NEXTVAL FROM DUAL; -- 310
 
+SELECT * FROM USER_SEQUENCES; --> LAST_NUMBER가 315로 되어있긴 함 
 
+SELECT SEQ_EMPNO.NEXTVAL FROM DUAL; -- 오류 (지정한 MAXVALUE값을 초과했기 때문에 오류 발생)
+SELECT SEQ_EMPNO.CURRVAL FROM DUAL; -- 310
 
+/*
+    3. 시퀀스 변경 
+    
+    [표현법]
+    ALTER SEQUENCE 시퀀스명
+    [INCREMENT BY 증가값]        --> 몇 씩 증가시킬건지 값 지정 (기본값 1)
+    [NOMAXVALUE | MAXVALUE 숫자] --> 상한값 지정 (기본값 겁나큼)
+    [NOMINVALUE | MINVALUE 숫자] --> 하한값 지정 (기본값 1)
+    [NOCYCLE | CYCLE]            --> 값 순환 여부 지정 (기본값 NOCYCLE)
+    [NOCACHE | CACHE 사이즈]     --> 캐시메모리 할당 (기본값 CACHE 20)
+    
+    [유의사항]
+    START WITH 는 변경불가
+*/
 
-
-
+ALTER SEQUENCE SEQ_EMPNO
+    INCREMENT BY 10
+    MAXVALUE 400;
+    
+SELECT SEQ_EMPNO.NEXTVAL FROM DUAL; -- 310+10 => 320
 
 
 
